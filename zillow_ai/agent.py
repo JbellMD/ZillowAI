@@ -92,6 +92,7 @@ class ApartmentFinderAgent:
                     try:
                         # Extract price as integer (remove non-numeric characters)
                         price_str = item.get("price", "0")
+                        price_str = str(price_str) if price_str is not None else "0"
                         price = int(''.join(filter(str.isdigit, price_str))) if price_str else 0
                         
                         # Skip if price is outside the criteria range
@@ -100,14 +101,17 @@ class ApartmentFinderAgent:
                         
                         # Extract bedrooms as integer
                         bedrooms_str = item.get("bedrooms", "0")
+                        bedrooms_str = str(bedrooms_str) if bedrooms_str is not None else "0"
                         bedrooms = int(bedrooms_str) if bedrooms_str and bedrooms_str.isdigit() else 0
                         
                         # Extract bathrooms as float
                         bathrooms_str = item.get("bathrooms", "0")
+                        bathrooms_str = str(bathrooms_str) if bathrooms_str is not None else "0"
                         bathrooms = float(bathrooms_str) if bathrooms_str and bathrooms_str.replace('.', '').isdigit() else 0
                         
                         # Parse square feet
                         sqft_str = item.get("livingArea", "")
+                        sqft_str = str(sqft_str) if sqft_str is not None else ""
                         square_feet = int(''.join(filter(str.isdigit, sqft_str))) if sqft_str else None
                         
                         # Create Property object
@@ -177,6 +181,7 @@ class ApartmentFinderAgent:
             
             # Extract price as integer (remove non-numeric characters)
             price_str = response_data.get("price", "0")
+            price_str = str(price_str) if price_str is not None else "0"
             price = int(''.join(filter(str.isdigit, price_str))) if price_str else 0
             
             # Extract address components
