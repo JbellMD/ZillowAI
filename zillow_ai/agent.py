@@ -76,7 +76,8 @@ class ApartmentFinderAgent:
             "page": "1",
             "status_type": "ForRent",
             "home_type": "Apartments",
-            "beds": str(criteria.bedrooms)
+            "beds": str(criteria.bedrooms),
+            "test": "true"  # Enable test mode
         }
         
         try:
@@ -164,7 +165,8 @@ class ApartmentFinderAgent:
         try:
             # Set up parameters for the property details endpoint
             params = {
-                "zpid": property_id
+                "zpid": property_id,
+                "test": "true"  # Enable test mode
             }
             
             # Make the API request to the property details endpoint
