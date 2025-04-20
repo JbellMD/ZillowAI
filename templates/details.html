@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.address }} - ZillowAI{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/search">Search</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Property Details</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="property-images mb-4">
+            {% if property.image_urls and property.image_urls|length > 0 %}
+                <div id="propertyImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        {% for image in property.image_urls %}
+                            <button type="button" data-bs-target="#propertyImageCarousel" data-bs-slide-to="{{ loop.index0 }}" 
+                                    {% if loop.first %}class="active" aria-current="true"{% endif %} 
+                                    aria-label="Slide {{ loop.index }}"></button>
+                        {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                        {% for image in property.image_urls %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ image }}" class="d-block w-100 property-detail-image" alt="Property image {{ loop.index }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#propertyImageCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#propertyImageCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% else %}
+                <div class="no-image-placeholder large">
+                    <i class="bi bi-building"></i>
+                    <span>No images available</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="property-header mb-4">
+            <h1 class="property-title">{{ property.address }}</h1>
+            <p class="property-location">{{ property.city }}, {{ property.state }} {{ property.zipcode }}</p>
+            <div class="property-price-large">${{ "{:,}".format(property.price) }}</div>
+        </div>
+        
+        <div class="property-features mb-4">
+            <div class="row">
+                <div class="col-md-3 col-6 feature-item">
+                    <div class="feature-icon">
+                        <i class="bi bi-door-open"></i>
+                    </div>
+                    <div class="feature-text">
+                        <div class="feature-label">Bedrooms</div>
+                        <div class="feature-value">{{ property.bedrooms }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 feature-item">
+                    <div class="feature-icon">
+                        <i class="bi bi-droplet"></i>
+                    </div>
+                    <div class="feature-text">
+                        <div class="feature-label">Bathrooms</div>
+                        <div class="feature-value">{{ property.bathrooms }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 feature-item">
+                    <div class="feature-icon">
+                        <i class="bi bi-rulers"></i>
+                    </div>
+                    <div class="feature-text">
+                        <div class="feature-label">Square Feet</div>
+                        <div class="feature-value">
+                            {% if property.square_feet %}
+                                {{ property.square_feet }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 feature-item">
+                    <div class="feature-icon">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+                    <div class="feature-text">
+                        <div class="feature-label">Year Built</div>
+                        <div class="feature-value">
+                            {% if property.year_built %}
+                                {{ property.year_built }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="property-description mb-4">
+            <h2>Description</h2>
+            <div class="card">
+                <div class="card-body">
+                    {% if property.description %}
+                        <p>{{ property.description }}</p>
+                    {% else %}
+                        <p class="text-muted">No description available for this property.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="property-amenities mb-4">
+            <h2>Amenities</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="amenity-item">
+                                <i class="bi {% if property.pets_allowed == True %}bi-check-circle-fill text-success{% elif property.pets_allowed == False %}bi-x-circle-fill text-danger{% else %}bi-question-circle text-muted{% endif %}"></i>
+                                <span>
+                                    {% if property.pets_allowed == True %}
+                                        Pets allowed
+                                    {% elif property.pets_allowed == False %}
+                                        No pets allowed
+                                    {% else %}
+                                        Pet policy unknown
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="amenity-item">
+                                <i class="bi {% if property.has_parking == True %}bi-check-circle-fill text-success{% elif property.has_parking == False %}bi-x-circle-fill text-danger{% else %}bi-question-circle text-muted{% endif %}"></i>
+                                <span>
+                                    {% if property.has_parking == True %}
+                                        Parking available
+                                    {% elif property.has_parking == False %}
+                                        No parking available
+                                    {% else %}
+                                        Parking information unknown
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0">Location</h2>
+            </div>
+            <div class="card-body p-0">
+                {% if property.latitude and property.longitude %}
+                    <div id="property-map" style="height: 300px;"></div>
+                {% else %}
+                    <div class="text-center p-4">
+                        <p class="text-muted">Map location not available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0">Contact</h2>
+            </div>
+            <div class="card-body">
+                <p>Interested in this property? Contact the agent or visit Zillow for more details.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ property.url }}" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-house-door"></i> View on Zillow
+                    </a>
+                    <a href="/chat" class="btn btn-outline-secondary">
+                        <i class="bi bi-chat-dots"></i> Ask ZillowAI
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0">Property Details</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Property Type</span>
+                        <span class="fw-bold">{{ property.property_type or 'N/A' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Price per Sq Ft</span>
+                        <span class="fw-bold">
+                            {% if property.square_feet and property.square_feet > 0 %}
+                                ${{ "{:,.2f}".format(property.price / property.square_feet) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Property ID</span>
+                        <span class="text-muted">{{ property.id }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if property.latitude and property.longitude %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map when the page is loaded
+        const map = L.map('property-map').setView([{{ property.latitude }}, {{ property.longitude }}], 14);
+        
+        // Add the OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add a marker at the property location
+        L.marker([{{ property.latitude }}, {{ property.longitude }}])
+            .addTo(map)
+            .bindPopup("{{ property.address }}")
+            .openPopup();
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/details.css') }}">
+{% if property.latitude and property.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+{% endif %}
+{% endblock %}

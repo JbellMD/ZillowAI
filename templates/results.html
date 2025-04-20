@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - ZillowAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Search Results</h1>
+    <div>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#saveSearchModal">
+            <i class="bi bi-bookmark-plus"></i> Save Search
+        </button>
+        <a href="/search" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-search"></i> New Search
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <p class="mb-0">
+        <strong>Search Criteria:</strong> 
+        {{ criteria.bedrooms }} bedroom apartments in {{ criteria.location }} 
+        between ${{ criteria.min_price }} and ${{ criteria.max_price }}
+        {% if criteria.bathrooms %} with {{ criteria.bathrooms }}+ bathrooms{% endif %}
+        {% if criteria.pets_allowed %} that allow pets{% endif %}
+        {% if criteria.has_parking %} with parking{% endif %}
+    </p>
+</div>
+
+{% if results %}
+    <p>Found {{ results|length }} matching properties</p>
+    
+    <div class="row property-results">
+        {% for property in results %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 property-card">
+                    <div class="property-image-container">
+                        {% if property.image_urls and property.image_urls|length > 0 %}
+                            <img src="{{ property.image_urls[0] }}" class="card-img-top property-image" alt="{{ property.address }}">
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="bi bi-building"></i>
+                                <span>No image available</span>
+                            </div>
+                        {% endif %}
+                        <div class="property-price">${{ "{:,}".format(property.price) }}</div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title property-address">{{ property.address }}</h5>
+                        <p class="card-text property-location">{{ property.city }}, {{ property.state }} {{ property.zipcode }}</p>
+                        <div class="property-details">
+                            <span class="badge bg-primary">{{ property.bedrooms }} bed</span>
+                            <span class="badge bg-info">{{ property.bathrooms }} bath</span>
+                            {% if property.square_feet %}
+                                <span class="badge bg-secondary">{{ property.square_feet }} sq ft</span>
+                            {% endif %}
+                        </div>
+                        {% if property.property_type %}
+                            <p class="property-type mt-2">{{ property.property_type }}</p>
+                        {% endif %}
+                        
+                        <div class="property-amenities mt-3">
+                            {% if property.pets_allowed == True %}
+                                <span class="text-success"><i class="bi bi-check-circle"></i> Pets allowed</span>
+                            {% elif property.pets_allowed == False %}
+                                <span class="text-danger"><i class="bi bi-x-circle"></i> No pets</span>
+                            {% else %}
+                                <span class="text-muted"><i class="bi bi-question-circle"></i> Pets policy unknown</span>
+                            {% endif %}
+                            <br>
+                            {% if property.has_parking == True %}
+                                <span class="text-success"><i class="bi bi-check-circle"></i> Parking available</span>
+                            {% elif property.has_parking == False %}
+                                <span class="text-danger"><i class="bi bi-x-circle"></i> No parking</span>
+                            {% else %}
+                                <span class="text-muted"><i class="bi bi-question-circle"></i> Parking unknown</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-grid gap-2">
+                            <a href="/details/{{ property.id }}" class="btn btn-primary">View Details</a>
+                            <a href="{{ property.url }}" target="_blank" class="btn btn-outline-secondary">View on Zillow</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">
+        <h4 class="alert-heading">No Properties Found</h4>
+        <p>We couldn't find any properties matching your search criteria. Please try adjusting your search parameters.</p>
+        <hr>
+        <p class="mb-0">
+            <a href="/search" class="btn btn-primary">Try Again</a>
+        </p>
+    </div>
+{% endif %}
+
+<!-- Save Search Modal -->
+<div class="modal fade" id="saveSearchModal" tabindex="-1" aria-labelledby="saveSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveSearchModalLabel">Save Your Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/save" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="search_name" class="form-label">Search Name</label>
+                        <input type="text" class="form-control" id="search_name" name="search_name" required 
+                               placeholder="e.g., 2BR in {{ criteria.location }}">
+                        <div class="form-text">Give your search a name so you can easily find it later.</div>
+                    </div>
+                    
+                    <!-- Hidden fields to store search criteria -->
+                    <input type="hidden" name="location" value="{{ criteria.location }}">
+                    <input type="hidden" name="min_price" value="{{ criteria.min_price }}">
+                    <input type="hidden" name="max_price" value="{{ criteria.max_price }}">
+                    <input type="hidden" name="bedrooms" value="{{ criteria.bedrooms }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/results.css') }}">
+{% endblock %}

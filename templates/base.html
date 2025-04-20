@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZillowAI - Apartment Finder{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/images/favicon.ico') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', path='/images/logo.png') }}" alt="ZillowAI Logo" height="30" class="d-inline-block align-top me-2">
+                ZillowAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/saved">Saved Searches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat">Chat</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer bg-light mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 ZillowAI. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Powered by Zillow API</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
