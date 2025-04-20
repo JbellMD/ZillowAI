@@ -66,17 +66,25 @@ async def perform_search(
     min_price: int = Form(...),
     max_price: int = Form(...),
     bedrooms: int = Form(2),
-    bathrooms: Optional[float] = Form(None),
+    bathrooms: Optional[str] = Form(None),
     pets_allowed: bool = Form(False),
     has_parking: bool = Form(False)
 ):
     """Perform apartment search based on form input"""
+    # Convert bathrooms from string to float if provided
+    bathrooms_float = None
+    if bathrooms and bathrooms.strip():
+        try:
+            bathrooms_float = float(bathrooms)
+        except ValueError:
+            bathrooms_float = None
+    
     criteria = SearchCriteria(
         location=location,
         min_price=min_price,
         max_price=max_price,
         bedrooms=bedrooms,
-        bathrooms=bathrooms,
+        bathrooms=bathrooms_float,
         pets_allowed=pets_allowed,
         has_parking=has_parking
     )

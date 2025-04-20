@@ -54,7 +54,14 @@ class ApartmentFinderAgent:
                 if response.status != 200:
                     error_text = await response.text()
                     logger.error(f"API request failed: {error_text}")
-                    raise Exception(f"API request failed with status {response.status}: {error_text}")
+                    
+                    # Better error messages for common issues
+                    if "not subscribed" in error_text.lower():
+                        raise Exception("You are not subscribed to the Zillow API on RapidAPI. Please visit RapidAPI and subscribe to the Zillow API endpoint.")
+                    elif "too many requests" in error_text.lower():
+                        raise Exception("Rate limit exceeded. Your subscription plan may have limits on the number of requests.")
+                    else:
+                        raise Exception(f"API request failed with status {response.status}: {error_text}")
                 
                 data = await response.json()
                 return data
