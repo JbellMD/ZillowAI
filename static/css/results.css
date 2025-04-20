@@ -1,0 +1,117 @@
+/* Styles for the property results page */
+
+.property-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.property-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.property-card:hover .property-image {
+    transform: scale(1.05);
+}
+
+.property-price {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(26, 115, 232, 0.9);
+    color: white;
+    padding: 8px 12px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    border-top-left-radius: 8px;
+}
+
+.property-address {
+    margin-top: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.property-location {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.property-details {
+    margin-bottom: 10px;
+}
+
+.property-details .badge {
+    margin-right: 5px;
+    font-size: 0.8rem;
+    padding: 5px 8px;
+}
+
+.property-type {
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.property-amenities {
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.no-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    color: #6c757d;
+}
+
+.no-image-placeholder i {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+/* Modal styling */
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.modal-header .btn-close {
+    color: white;
+}
+
+/* Card footer */
+.card-footer {
+    background-color: white;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Responsive adaptations */
+@media (max-width: 768px) {
+    .property-image-container {
+        height: 150px;
+    }
+    
+    .property-price {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+    }
+}

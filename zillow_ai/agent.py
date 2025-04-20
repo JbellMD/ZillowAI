@@ -34,7 +34,7 @@ class ApartmentFinderAgent:
             
         self.conversation = Conversation()
         self.last_search_results = []
-        self.base_url = "https://api.bridgedataoutput.com/api/v2/zestimates/zestimates"
+        self.base_url = "https://zillow-com1.p.rapidapi.com"
         
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def _make_api_request(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -43,8 +43,8 @@ class ApartmentFinderAgent:
             raise ValueError("Zillow API key is not set. Please set the ZILLOW_API_KEY environment variable.")
         
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "X-RapidAPI-Key": self.api_key,
+            "X-RapidAPI-Host": "zillow-com1.p.rapidapi.com"
         }
         
         url = f"{self.base_url}/{endpoint}"
@@ -63,40 +63,69 @@ class ApartmentFinderAgent:
         """Search for apartments based on the given criteria"""
         logger.info(f"Searching for apartments with criteria: {criteria}")
         
-        # Convert criteria to API parameters
-        params = criteria.to_api_params()
+        # Convert criteria to API parameters for RapidAPI Zillow endpoint
+        params = {
+            "location": criteria.location,
+            "page": "1",
+            "status_type": "ForRent",
+            "home_type": "Apartments",
+            "beds": str(criteria.bedrooms)
+        }
         
         try:
-            # Make the API request
-            response_data = await self._make_api_request("search", params)
+            # Make the API request to the property search endpoint
+            response_data = await self._make_api_request("propertyExtendedSearch", params)
             
-            # Parse the results
+            # Parse the results from RapidAPI Zillow format
             properties = []
-            for item in response_data.get("bundle", []):
-                try:
-                    prop = Property(
-                        id=item.get("id", ""),
-                        address=item.get("address", {}).get("line", ""),
-                        city=item.get("address", {}).get("city", ""),
-                        state=item.get("address", {}).get("state", ""),
-                        zipcode=item.get("address", {}).get("postalCode", ""),
-                        price=int(item.get("price", 0)),
-                        bedrooms=int(item.get("bedrooms", 0)),
-                        bathrooms=float(item.get("bathrooms", 0)),
-                        square_feet=item.get("livingArea"),
-                        description=item.get("description", ""),
-                        year_built=item.get("yearBuilt"),
-                        url=item.get("detailUrl", ""),
-                        image_urls=[img.get("url", "") for img in item.get("media", []) if img.get("mediaType") == "image"],
-                        latitude=item.get("geo", {}).get("latitude"),
-                        longitude=item.get("geo", {}).get("longitude"),
-                        property_type=item.get("propertyType"),
-                        pets_allowed=self._extract_pet_policy(item),
-                        has_parking=self._extract_parking_info(item)
-                    )
-                    properties.append(prop)
-                except Exception as e:
-                    logger.error(f"Error parsing property data: {e}")
+            
+            if "props" in response_data and isinstance(response_data["props"], list):
+                for item in response_data["props"]:
+                    try:
+                        # Extract price as integer (remove non-numeric characters)
+                        price_str = item.get("price", "0")
+                        price = int(''.join(filter(str.isdigit, price_str))) if price_str else 0
+                        
+                        # Skip if price is outside the criteria range
+                        if price < criteria.min_price or (criteria.max_price > 0 and price > criteria.max_price):
+                            continue
+                        
+                        # Extract bedrooms as integer
+                        bedrooms_str = item.get("bedrooms", "0")
+                        bedrooms = int(bedrooms_str) if bedrooms_str and bedrooms_str.isdigit() else 0
+                        
+                        # Extract bathrooms as float
+                        bathrooms_str = item.get("bathrooms", "0")
+                        bathrooms = float(bathrooms_str) if bathrooms_str and bathrooms_str.replace('.', '').isdigit() else 0
+                        
+                        # Parse square feet
+                        sqft_str = item.get("livingArea", "")
+                        square_feet = int(''.join(filter(str.isdigit, sqft_str))) if sqft_str else None
+                        
+                        # Create Property object
+                        prop = Property(
+                            id=str(item.get("zpid", "")),
+                            address=item.get("address", {}).get("streetAddress", ""),
+                            city=item.get("address", {}).get("city", ""),
+                            state=item.get("address", {}).get("state", ""),
+                            zipcode=item.get("address", {}).get("zipcode", ""),
+                            price=price,
+                            bedrooms=bedrooms,
+                            bathrooms=bathrooms,
+                            square_feet=square_feet,
+                            description=item.get("description", ""),
+                            year_built=item.get("yearBuilt"),
+                            url=f"https://www.zillow.com/homedetails/{item.get('zpid', '')}_zpid/",
+                            image_urls=[item.get("imgSrc", "")] if item.get("imgSrc") else [],
+                            latitude=item.get("latitude"),
+                            longitude=item.get("longitude"),
+                            property_type=item.get("propertyType", "Apartment"),
+                            pets_allowed=self._extract_pet_policy(item),
+                            has_parking=self._extract_parking_info(item)
+                        )
+                        properties.append(prop)
+                    except Exception as e:
+                        logger.error(f"Error parsing property data: {e}")
             
             # Store results for later use
             self.last_search_results = properties
@@ -113,6 +142,63 @@ class ApartmentFinderAgent:
             
         except Exception as e:
             logger.error(f"Error searching for apartments: {e}")
+            raise
+    
+    async def get_property_details(self, property_id: str) -> Property:
+        """Get detailed information about a specific property"""
+        logger.info(f"Getting details for property {property_id}")
+        
+        # First check if we have this property in our last search results
+        for prop in self.last_search_results:
+            if prop.id == property_id:
+                return prop
+        
+        # If not found in cache, fetch from API
+        try:
+            # Set up parameters for the property details endpoint
+            params = {
+                "zpid": property_id
+            }
+            
+            # Make the API request to the property details endpoint
+            response_data = await self._make_api_request("property", params)
+            
+            if not response_data:
+                raise ValueError(f"No data returned for property ID {property_id}")
+            
+            # Extract price as integer (remove non-numeric characters)
+            price_str = response_data.get("price", "0")
+            price = int(''.join(filter(str.isdigit, price_str))) if price_str else 0
+            
+            # Extract address components
+            address = response_data.get("address", {})
+            
+            # Create Property object from the detailed data
+            prop = Property(
+                id=property_id,
+                address=address.get("streetAddress", ""),
+                city=address.get("city", ""),
+                state=address.get("state", ""),
+                zipcode=address.get("zipcode", ""),
+                price=price,
+                bedrooms=int(response_data.get("bedrooms", 0)),
+                bathrooms=float(response_data.get("bathrooms", 0)),
+                square_feet=response_data.get("livingArea"),
+                description=response_data.get("description", ""),
+                year_built=response_data.get("yearBuilt"),
+                url=f"https://www.zillow.com/homedetails/{property_id}_zpid/",
+                image_urls=response_data.get("images", []) if response_data.get("images") else [response_data.get("imgSrc", "")],
+                latitude=response_data.get("latitude"),
+                longitude=response_data.get("longitude"),
+                property_type=response_data.get("propertyType", "Apartment"),
+                pets_allowed=self._extract_pet_policy(response_data),
+                has_parking=self._extract_parking_info(response_data)
+            )
+            
+            return prop
+            
+        except Exception as e:
+            logger.error(f"Error fetching property details: {e}")
             raise
     
     def _extract_pet_policy(self, property_data: Dict[str, Any]) -> Optional[bool]:
@@ -163,48 +249,6 @@ class ApartmentFinderAgent:
                 return True
                 
         return None  # Unknown
-    
-    async def get_property_details(self, property_id: str) -> Property:
-        """Get detailed information about a specific property"""
-        logger.info(f"Getting details for property {property_id}")
-        
-        # First check if we have this property in our last search results
-        for prop in self.last_search_results:
-            if prop.id == property_id:
-                return prop
-        
-        # If not found in cache, fetch from API
-        try:
-            response_data = await self._make_api_request(f"property/{property_id}", {})
-            
-            property_data = response_data.get("property", {})
-            
-            prop = Property(
-                id=property_id,
-                address=property_data.get("address", {}).get("line", ""),
-                city=property_data.get("address", {}).get("city", ""),
-                state=property_data.get("address", {}).get("state", ""),
-                zipcode=property_data.get("address", {}).get("postalCode", ""),
-                price=int(property_data.get("price", 0)),
-                bedrooms=int(property_data.get("bedrooms", 0)),
-                bathrooms=float(property_data.get("bathrooms", 0)),
-                square_feet=property_data.get("livingArea"),
-                description=property_data.get("description", ""),
-                year_built=property_data.get("yearBuilt"),
-                url=property_data.get("detailUrl", ""),
-                image_urls=[img.get("url", "") for img in property_data.get("media", []) if img.get("mediaType") == "image"],
-                latitude=property_data.get("geo", {}).get("latitude"),
-                longitude=property_data.get("geo", {}).get("longitude"),
-                property_type=property_data.get("propertyType"),
-                pets_allowed=self._extract_pet_policy(property_data),
-                has_parking=self._extract_parking_info(property_data)
-            )
-            
-            return prop
-            
-        except Exception as e:
-            logger.error(f"Error fetching property details: {e}")
-            raise
     
     async def chat(self, message: str) -> str:
         """Chat with the apartment finder agent"""

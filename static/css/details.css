@@ -1,0 +1,143 @@
+/* Styles for the property details page */
+
+.property-detail-image {
+    height: 400px;
+    object-fit: cover;
+}
+
+.no-image-placeholder.large {
+    height: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-radius: 8px;
+}
+
+.no-image-placeholder.large i {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+.property-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.property-location {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.property-price-large {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.feature-icon {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-right: 15px;
+    width: 50px;
+    text-align: center;
+}
+
+.feature-text {
+    flex: 1;
+}
+
+.feature-label {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.feature-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.property-description {
+    margin-top: 30px;
+}
+
+.property-amenities {
+    margin-top: 30px;
+}
+
+.amenity-item {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.amenity-item i {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+/* Map container */
+#property-map {
+    border-radius: 0 0 8px 8px;
+}
+
+/* Carousel customization */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 5%;
+}
+
+.carousel-indicators {
+    margin-bottom: 0.5rem;
+}
+
+.carousel-indicators button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .property-detail-image {
+        height: 250px;
+    }
+    
+    .no-image-placeholder.large {
+        height: 250px;
+    }
+    
+    .property-title {
+        font-size: 1.5rem;
+    }
+    
+    .property-price-large {
+        font-size: 1.5rem;
+    }
+    
+    .feature-item {
+        margin-bottom: 15px;
+    }
+    
+    .feature-icon {
+        font-size: 1.5rem;
+        margin-right: 10px;
+        width: 40px;
+    }
+    
+    .feature-value {
+        font-size: 1rem;
+    }
+}
